@@ -1,0 +1,20 @@
+version: '3.7'
+
+
+services:
+  redis:
+    container_name: redis_queue
+    image: redis
+    #build: 
+    #  context: .
+    #  dockerfile: dockerfile/Redis.DockerFile
+    #restart: always
+    ports:
+      - '6379:6379'
+    networks:
+      - redis_network
+    command: ['--requirepass "secret"']
+networks:
+  redis_network:
+    external: true
+  
