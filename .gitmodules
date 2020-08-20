@@ -1,3 +1,0 @@
-[submodule "weather-client"]
-    path= weather-client
-    url= https://github.com/Cutshadows/weather-and-redis-backend
