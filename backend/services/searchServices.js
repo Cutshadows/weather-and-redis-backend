@@ -4,9 +4,8 @@ const NodeGeocoder = require('node-geocoder');
  
 const options = {
   provider: 'google',
- // fetch: 'GET',
-  apiKey: process.env.API_KEY_GOOGLE, // for Mapquest, OpenCage, Google Premier
-  formatter: null // 'gpx', 'string', ...
+  apiKey: process.env.API_KEY_GOOGLE,
+  formatter: null 
 };
 const geocoder = NodeGeocoder(options);
 
@@ -31,21 +30,33 @@ exports.searchLocation=async(req, res)=>{
 
     
     try{
-        clientRedis.get(busqueda, async(err, recipient)=>{
+        clientRedis.get(countryCode, async(err, recipient)=>{
             if(recipient){
                 return res.status(200).json({
-                    msg:`respuesta desde el cache ${recipient}`,
-                    busqueda:JSON.parse(recipient)
+                    msg:`respuesta desde el cache ${recipient.countryCode}`,
+                    bresult:JSON.parse(recipient)
                 })
             }else{
                 
-
+                const resultApi={};
                 const requestAxios=await axios.get(urlApi.href);
-                console.log(requestAxios.data);
-                //clientRedis.set(busqueda, requestAxios.locations)
+                const [values]=requestAxios.data.locations;
+                const {latitude, longitude, id}=requestAxios.data.locations[0];
+                console.log(values.values[0])
+                const {temp, mint, maxt}=values.values[0];
+
+                resultApi.id=id;
+                resultApi.countryCode=countryCode;
+                resultApi.lat=latitude;
+                resultApi.lng=longitude;
+                resultApi.min=temp;
+                resultApi.max=maxt;
+                resultApi.temp_actual=mint;
+                clientRedis.set(countryCode, JSON.stringify(resultApi));
 
                 res.status(200).json({
                     msg:"busqueda desde la api",
+                    bresult:resultApi
                 });
 
             }
@@ -56,7 +67,6 @@ exports.searchLocation=async(req, res)=>{
 
         
     } catch (error) {
-        console.log(error);
         res.status(500).send('Hubo un error en el servidor');
     }
  

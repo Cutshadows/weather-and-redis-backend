@@ -2,6 +2,18 @@ version: '3.7'
 
 
 services:
+  reverse-proxy:
+    image: treafik #The official Treafik docker image
+    command: --docker --api --logLevel=info
+    ports:
+      - "80:80"     #The HTTP port
+      - "8080:8080" #The Web UI (enabled by --api)
+    volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock
+  whoami:
+    image: containous/whoami
+    labels:
+      - "trafik.frontend.rule=Host:whoami.fredrikson.com.ar"
   redis:
     container_name: redis_queue
     image: redis
