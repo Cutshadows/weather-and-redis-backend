@@ -1,22 +1,49 @@
 version: '3.7'
 
-
 services:
-  reverse-proxy:
-    image: treafik #The official Treafik docker image
-    command: --docker --api --logLevel=info
+  #frontend:
+    #image: traefik:2.2 #The official Treafik docker image
+    #command: --docker --api --logLevel=info
+    #command: --providers.docker --entrypoints.web.address=:80 --providers.docker.exposedbydefault=false
+    #ports:
+    #  - "80:80"     #The HTTP port
+    #  - "8080:8080" #The Web UI (enabled by --api)
+    #volumes: 
+    #  - /var/run/docker.sock:/var/run/docker.sock
+    #depends_on:
+    #  - backend    
+  #whoami:
+    #image: containous/whoami
+    #labels:
+     # - "trafik.frontend.rule=Host:whoami.fredrikson.com.ar"
+  ##BACKEND EN NODE    
+  backend:
+    build:
+      args:
+        - NODE_ENV=development
+      context: backend
+    command: npm run dev
+    environment:
+      - PORT=3030
+      - API_KEY_WEATHER=1Y51CRC59Y70DY72S7JZGCLKZ
+      - REDIS_PASSWORD=secret
+      - REDIS_PORT=6379
+      - REDIS_HOST=127.0.0.1
+      - API_KEY_GOOGLE=AIzaSyDNrxeR6c12OIqfcXYoknzO9pmbt_Ux_Og
+      - NODE_ENV=development
     ports:
-      - "80:80"     #The HTTP port
-      - "8080:8080" #The Web UI (enabled by --api)
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock
-  whoami:
-    image: containous/whoami
-    labels:
-      - "trafik.frontend.rule=Host:whoami.fredrikson.com.ar"
+      - 80:80
+      - 3030:3030
+      #- 6379:6379
+    networks:
+      - public
+      - private
+    depends_on:
+      - redis
+  ##SERVICIO DE CACHE DE REDIS
   redis:
-    container_name: redis_queue
     image: redis
+    #restart: always
     #build: 
     #  context: .
     #  dockerfile: dockerfile/Redis.DockerFile
@@ -24,9 +51,12 @@ services:
     ports:
       - '6379:6379'
     networks:
-      - redis_network
+      - private
+      #- redis_network
     command: ['--requirepass "secret"']
 networks:
-  redis_network:
-    external: true
+  public:
+  private:
+  #redis_network:
+  #  external: true
   
